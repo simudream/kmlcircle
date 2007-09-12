@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 
 #The MIT License
 #
@@ -21,6 +21,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+#
+
+#
+# Version 2 - 12-Sept-2007 Simplified XML output
+#                          Added commandline interface
+# Version 1 - 10-Sept-2007 Initial release
 #
 
 from math import *
@@ -119,9 +125,7 @@ def rotPoint(vec, pt,  phi):
 #  edit this function to change "extrude" and other XML nodes.
 #
 def kml_regular_polygon(long, lat, meters, segments=30, offset=0):
-    s = "<Polygon>"
-    s += "  <extrude>0</extrude>\n"
-    s += "  <altitudeMode>clampToGround</altitudeMode>\n"
+    s = "<Polygon>\n"
     s += "  <outerBoundaryIs><LinearRing><coordinates>\n"
     for p in spoints(long, lat, meters, segments, offset):
         s += "    " + str(p[0]) + "," + str(p[1]) + "\n"
@@ -152,11 +156,100 @@ def kml_star(long, lat, outer, inner, segments=10, offset=0):
         pts.append(ipts[i])
 
     s = "<Polygon>\n"
-    s += "  <extrude>1</extrude>\n"
-    s += "  <altitudeMode>clampToGround</altitudeMode>\n"
     s += "  <outerBoundaryIs><LinearRing><coordinates>\n"
     for p in pts:
         s += "    " + str(p[0]) + "," + str(p[1]) + "\n"
     s += "  </coordinates></LinearRing></outerBoundaryIs>\n"
     s += "</Polygon>\n"
     return s
+
+#    s += "  <extrude>1</extrude>\n"
+#   s += "  <altitudeMode>clampToGround</altitudeMode>\n"
+
+
+#
+# The rest is only for command line argument 
+# processing
+#
+
+import sys
+import getopt
+
+def usage(code, msg):
+
+    u = """
+-h, --longitude longitude in degrees (h is for 'horizontal')
+-v, --latitude  latitude in degrees (v is for 'vertical')
+-r, --radius    radius in meters
+-s, --sides     number of sides
+-i, --inner     optional, inner radius in meters,  default same as 'radius'
+                this will make a 'star'
+-o, --offset    optional, rotate polygon by angle in degrees, default 0
+-?, --help      this usage
+
+"""
+    sys.stderr.write(msg)
+    sys.stderr.write("\n\n")
+    sys.stderr.write(u)
+    sys.exit(code)
+
+
+def main(argv):
+    longitude = ""
+    latitude = ""
+    radius = ""
+    sides = ""
+    inner = ""
+    offset = 0
+
+    try:
+        opts, args = getopt.getopt(argv, "h:v:r:s:i:o:?",
+                                   ["longitude", "latitude", "radius", "sides",
+                                    "inner", "offset", "help"])
+    except getopt.GetoptError:
+        usage(1, "Unknown option!");
+    
+    for opt, arg in opts:
+        if opt in ("-?", "--help"):
+            usage("", 0);
+        elif opt in ("-h", "--longitude"):
+            longitude = float(arg)
+        elif opt in ("-v", "--latitude"):
+            latitude = float(arg)
+        elif opt in ("-r", "--radius"):
+            radius = float(arg)
+        elif opt in ("-s", "--sides"):
+            sides = int(arg)
+        elif opt in ("-i", "--inner"):
+            inner = float(arg)
+        elif opt in ("-o", "--offset"):
+            offset = float(arg)
+    
+    # validate input
+    if longitude == "" or latitude == "":
+        usage(2, "Must specified both longitude and latitude in degrees\n")
+
+    if sides == "" or sides < 3:
+        usage(2, "Must give numbers of sides of polygon > 2\n")
+    
+    if radius == "" or radius < 0:
+        usage(2, "Must specify radius > 0\n")
+
+    # inner is different, it's optional
+    if inner != "" and inner < 0:
+        usage(2, "Inner radius must be positive\n")
+
+    #
+    # DO IT
+    #
+    if inner != "":
+        # it's a star
+        s = kml_star(longitude, latitude, radius, inner, sides, offset)
+    else:
+        s = kml_regular_polygon(longitude, latitude, radius, sides, offset)
+
+    print s
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
+
