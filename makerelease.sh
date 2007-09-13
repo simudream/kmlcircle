@@ -3,7 +3,7 @@
 #
 # mini release maker for kmlcircle
 #
-export VERSION=001
+export VERSION=002
 export DIR="kmlcircle-${VERSION}"
 rm -rf ${DIR}
 rm -rf ${DIR}.tar.gz
