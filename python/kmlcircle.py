@@ -55,7 +55,7 @@ def toEarth(p):
     DEG = 180.0 / pi
     return [longitude * DEG, latitude * DEG]
 
-#
+#c
 # convert long, lat IN RADIANS to (x,y,z)
 # 
 def toCart(longitude, latitude):
@@ -203,16 +203,16 @@ def main(argv):
     offset = 0
 
     try:
-        opts, args = getopt.getopt(argv, "h:v:r:s:i:o:?",
+        opts, args = getopt.getopt(argv, "h:v:r:s:i:o:",
                                    ["longitude", "latitude", "radius", "sides",
-                                    "inner", "offset", "help"])
+                                    "inner", "offset"])
     except getopt.GetoptError:
         usage(1, "Unknown option!");
     
+    if len(opts) == 0:
+        usage(1, "help")
     for opt, arg in opts:
-        if opt in ("-?", "--help"):
-            usage("", 0);
-        elif opt in ("-h", "--longitude"):
+        if opt in ("-h", "--longitude"):
             longitude = float(arg)
         elif opt in ("-v", "--latitude"):
             latitude = float(arg)
